@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(__file__)
 API_URL = "https://my.api.mockaroo.com/ironclad-soc-case-artifacts"
 
 headers = {
-    "X-API-Key": open(os.path.join(BASE_DIR, "MOCKAROO_API_KEY.txt")).read().strip()
+    "X-API-Key": os.environ.get("yAPIk")
 }
 
 response = requests.get(API_URL, timeout=10)
@@ -28,5 +28,5 @@ else:
     raise SystemExit
 
 #Checkpoint time: 2024-21-26 4:27 PM
-#Chcekpoint time: 2024-21-26 4:51 PM Failure due to API key issue. Please check the MOCKAROO_API_KEY.txt 
+#Chcekpoint time: 2024-21-26 4:51 PM Failure due to API key issue. Please check the yAPIk
 # file and ensure it contains a valid API key.
