@@ -115,10 +115,15 @@ class Case:
         # MEDIUM if any external IP or suspicious domain keyword
         # LOW otherwise
 
-        has_hash = any(a.indicator_type in ["file_hash", "hash", "sha256"] for a in self.artifacts)
+
+        #Testing to see if has_hash is working. 2026-02-23 5:24 PM.
+        has_hash = any(
+            a.indicator_type in ["file_hash", "hash", "sha256"] and a.value.strip() != ""
+            for a in self.artifacts
+        )
         if has_hash:
             self.severity = Severity.HIGH
-            return
+        
         
         # Since that artifact_type was changed to indicator_type, I updated the code to reflect that change.
         has_external_ip = any(
@@ -161,7 +166,26 @@ for record in data:
 # Checkpoint time: 2026-02-23 4:31 PM - Implemented the Case class and logic to group artifacts into cases.
 # Success time: 2026-02-23 4:44 PM - Successfully created cases and printed summaries for each case.
 print("\n=== Case Summaries ===")
-for c in cases_by_id.values():
+severity_rank = {Severity.HIGH: 3,
+                 Severity.MEDIUM: 2,
+                 Severity.LOW: 1
+}
+
+sorted_cases = sorted(
+    cases_by_id.values(),
+    key=lambda c: severity_rank[c.severity],
+    reverse=True # Sort by severity descending
+)
+# Testing to see if the cases are being sorted by severity correctly. 2026-02-23 5:25 PM.
+from collections import Counter
+
+severity_counts = Counter(c.severity for c in cases_by_id.values())
+
+print("\n=== Severity Totals ===")
+print("HIGH:", severity_counts.get(Severity.HIGH, 0))
+print("MEDIUM:", severity_counts.get(Severity.MEDIUM, 0))
+print("LOW:", severity_counts.get(Severity.LOW, 0))
+for c in sorted_cases:
     print(c.summary())
 
 with open("case_report.txt", "w", encoding="utf-8") as out:
