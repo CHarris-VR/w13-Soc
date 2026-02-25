@@ -117,12 +117,14 @@ class Case:
 
 
         #Testing to see if has_hash is working. 2026-02-23 5:24 PM.
+        # Success time: 2026-02-24 PM - Successfully implemented severity calculation based on artifacts. Cases with file hashes are now marked as HIGH severity. 
         has_hash = any(
             a.indicator_type in ["file_hash", "hash", "sha256"] and a.value.strip() != ""
             for a in self.artifacts
         )
         if has_hash:
             self.severity = Severity.HIGH
+        return
         
         
         # Since that artifact_type was changed to indicator_type, I updated the code to reflect that change.
