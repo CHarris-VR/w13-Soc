@@ -1,5 +1,6 @@
 import requests
 import os
+
 print("Running from:", os.getcwd()) # Added this to check the current working directory for debugging purposes.
 BASE_DIR = os.path.dirname(__file__)
 API_URL = "https://my.api.mockaroo.com/ironclad-soc-case-artifacts"
@@ -59,7 +60,7 @@ class Artifact:
     def __init__(self, raw: dict):
         self.raw = raw
 
-        # TODO: Replace these keys with the actual JSON field names
+        
         self.case_id = raw.get("case_id", "UNKNOWN_CASE")
         self.indicator_type = raw.get("indicator_type", "unknown")
         
@@ -124,8 +125,7 @@ class Case:
         )
         if has_hash:
             self.severity = Severity.HIGH
-        return
-        
+            return
         
         # Since that artifact_type was changed to indicator_type, I updated the code to reflect that change.
         has_external_ip = any(
@@ -141,6 +141,18 @@ class Case:
             self.severity = Severity.MEDIUM
         else:
             self.severity = Severity.LOW
+    
+    #Case close for Challenge B. 2026-02-23 5:26 PM.
+    def close(self):
+        if self.severity == Severity.HIGH:
+            self.status = CaseStatus.INVESTIGATING
+            self.add_note("Case requires further investigation due to HIGH severity artifacts.")
+            return False # Cannot close, needs investigation
+            
+        self.status = CaseStatus.RESOLVED
+        self.add_note("Case closed successfully.")
+        return True # Closed successfully
+    
 
     def summary(self) -> str:
         return f"{self.case_id} | {self.status.value} | {self.severity.value} | artifacts={len(self.artifacts)}"
@@ -154,6 +166,7 @@ class Case:
             for n in self.notes:
                 lines.append(f"  * {n}")
         return "\n".join(lines)
+    
     
 cases_by_id = {}
 
@@ -178,6 +191,16 @@ sorted_cases = sorted(
     key=lambda c: severity_rank[c.severity],
     reverse=True # Sort by severity descending
 )
+
+
+
+#Challenge B Testing close() method. 2026-02-23 6:44 PM.
+print("\n=== Challenge B: Close() Test ===")
+for c in sorted_cases[:5]:  # just test a few
+    result = c.close()
+    print(c.case_id, "severity=", c.severity.value, "status now=", c.status.value)
+
+
 # Testing to see if the cases are being sorted by severity correctly. 2026-02-23 5:25 PM.
 from collections import Counter
 
@@ -187,11 +210,13 @@ print("\n=== Severity Totals ===")
 print("HIGH:", severity_counts.get(Severity.HIGH, 0))
 print("MEDIUM:", severity_counts.get(Severity.MEDIUM, 0))
 print("LOW:", severity_counts.get(Severity.LOW, 0))
-for c in sorted_cases:
+for c in sorted_cases[:5]: #$ just print top 5 for brevity
     print(c.summary())
 
+
+
 with open("case_report.txt", "w", encoding="utf-8") as out:
-    for c in cases_by_id.values():
+    for c in sorted_cases:
         out.write(str(c))
         out.write("\n\n")
 
